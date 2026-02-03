@@ -10,10 +10,11 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [teams, setTeams] = useState([])
   const [matches, setMatches] = useState([])
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const updateScore = (id, newHomeScore, newAwayScore) => {
     // Call the API to save to Database
-    axios.put(`http://localhost:3000/api/matches/${id}`, {
+    axios.put(`${API_URL}${id}`, {
       homeScore: newHomeScore,
       awayScore: newAwayScore
     })
@@ -25,7 +26,7 @@ function App() {
         return match;
       });
       setMatches(updatedMatches);
-      axios.get('http://localhost:3000/api/teams')
+      axios.get(`${API_URL}/api/teams`)
         .then((res) => {
           console.log("Standings Updated!");
           setTeams(res.data);
@@ -36,13 +37,13 @@ function App() {
   }
 
   useEffect(() => {
-    axios.get('http://localhost:3000/api/teams')
+    axios.get(`${API_URL}/api/teams`)
       .then((response) => {
         setTeams(response.data)
       })
       .catch((error) => console.error("Error fetching teams:", error));
 
-    axios.get('http://localhost:3000/api/matches')
+    axios.get(`${API_URL}/api/matches`)
       .then((response) => setMatches(response.data))
       .catch((error) => console.error("Error fetching matches:", error));
   }, [])
