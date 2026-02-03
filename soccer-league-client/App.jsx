@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 import Standings from './components/Standings'
 import Matches from './components/Matches'
 import TeamCards from './components/TeamCards'
@@ -83,6 +84,7 @@ function App() {
       <Standings teams={teams}/>
       <Matches matches={matches} isAdmin={isAdmin} onUpdateScore={updateScore}/>
       <TeamCards teams={teams}/>
+      <Analytics />
       <SpeedInsights />
     </div>
   )
