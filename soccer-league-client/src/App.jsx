@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import Standings from './components/Standings'
-import Matches from './components/Matches'
-import TeamCards from './components/TeamCards'
-import Login from './components/Login'
+import Standings from '../components/Standings'
+import Matches from '../components/Matches'
+import TeamCards from '../components/TeamCards'
+import Login from '../components/Login'
 
 function App() {
   //Tracks if user is logged in, default is (guest/false)
