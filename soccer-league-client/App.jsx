@@ -16,7 +16,7 @@ function App() {
 
   const updateScore = (id, newHomeScore, newAwayScore) => {
     // Call the API to save to Database
-    axios.put(`${API_URL}${id}`, {
+    axios.put(`${API_URL}/api/matches/${id}`, {
       homeScore: newHomeScore,
       awayScore: newAwayScore
     })
