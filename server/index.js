@@ -9,9 +9,41 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// ROUTE 1: Home Test
 app.get('/', (req, res) => {
   res.send('Server is working!');
+});
+
+app.get('/api/players/:teamId', async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const result = await SecurityPolicyViolationEvent.query('SELECT * FROM players WHERE team_id = $1', [teamId]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/players', async (req, res) => {
+  try {
+    const { name, team_id } = req.body;
+    const result = await pool.query('INSERT INTO players (name, team_id) VALUES ($1, $2) RETURNING *', [name, team_id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.staus(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/players/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM players WHERE id = $1', [id]);
+    res.json({ message: 'Player Deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.get('/api/teams', async (req, res) => {
@@ -70,7 +102,6 @@ app.get('/api/teams', async (req, res) => {
     }
 });
 
-// ROUTE 3: Get Matches (This is the one you were missing)
 app.get('/api/matches', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM matches ORDER BY date ASC');
@@ -81,7 +112,6 @@ app.get('/api/matches', async (req, res) => {
   }
 });
 
-// ROUTE 4: Update Match Score (For the Save button)
 app.put('/api/matches/:id', async (req, res) => {
   const { id } = req.params; 
   const { homeScore, awayScore } = req.body; 
