@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 app.post('/api/teams', async (req, res) => {
     try {
         const { name } = req.body;
-        const result = await pool.query('INSERT INTO teams (name, stats) VALUES ($1, $2) RETURNING *', [name, '{}']);
+        const result = await db.query('INSERT INTO teams (name) VALUES ($1) RETURNING *', [name]);
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -29,7 +29,7 @@ app.post('/api/teams', async (req, res) => {
 app.delete('/api/teams/:id' , async (req, res) => {
     try {
         const { id } =req.params;
-        await pool.query('DELETE FROM teams WHERE id = $1', [id]);
+        await db.query('DELETE FROM teams WHERE id = $1', [id]);
         res.json({ message: 'Team deleted' });
     } catch (err) {
         console.error(err);
@@ -37,10 +37,11 @@ app.delete('/api/teams/:id' , async (req, res) => {
     }
 });
 
+// Get Players
 app.get('/api/players/:teamId', async (req, res) => {
   try {
     const { teamId } = req.params;
-    const result = await SecurityPolicyViolationEvent.query('SELECT * FROM players WHERE team_id = $1', [teamId]);
+    const result = await db.query('SELECT * FROM players WHERE team_id = $1', [teamId]);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -48,10 +49,11 @@ app.get('/api/players/:teamId', async (req, res) => {
   }
 });
 
+// Add Players
 app.post('/api/players', async (req, res) => {
   try {
     const { name, team_id } = req.body;
-    const result = await pool.query('INSERT INTO players (name, team_id) VALUES ($1, $2) RETURNING *', [name, team_id]);
+    const result = await db.query('INSERT INTO players (name, team_id) VALUES ($1, $2) RETURNING *', [name, team_id]);
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -59,10 +61,11 @@ app.post('/api/players', async (req, res) => {
   }
 });
 
+// Delete Players
 app.delete('/api/players/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM players WHERE id = $1', [id]);
+    await db.query('DELETE FROM players WHERE id = $1', [id]);
     res.json({ message: 'Player Deleted' });
   } catch (err) {
     console.error(err);
@@ -70,6 +73,7 @@ app.delete('/api/players/:id', async (req, res) => {
   }
 });
 
+// Get Standings
 app.get('/api/teams', async (req, res) => {
     try {
         const teamsResult = await db.query('SELECT * FROM teams');
@@ -126,6 +130,7 @@ app.get('/api/teams', async (req, res) => {
     }
 });
 
+// Get Schedule
 app.get('/api/matches', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM matches ORDER BY date ASC');
@@ -136,6 +141,7 @@ app.get('/api/matches', async (req, res) => {
   }
 });
 
+// Update Matches
 app.put('/api/matches/:id', async (req, res) => {
   const { id } = req.params; 
   const { homeScore, awayScore } = req.body; 
@@ -153,6 +159,35 @@ app.put('/api/matches/:id', async (req, res) => {
     console.error(err);
     res.status(500).send('Database Error');
   }
+});
+
+// Create Match
+app.post('/api/matches', async (req, res) => {
+    try {
+        const { team1_id, team2_id, date } = req.body;
+        const result = await db.query(
+            `INSERT INTO matches (home_team, away_team, date, home_score, away_score, status)
+            VALUES ($1, $2, $3, 0, 0, 'scheduled')
+            RETURNING *`,
+            [team1_id, team2_id, date]
+        );
+        res.json(result.rows[0]);
+    }   catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server Error' });
+    }
+});
+
+// Delete Match
+app.delete('/api/matches/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM matches WHERE id = $1', [id]);
+        res.json({ message: 'Match deleted' });
+    }   catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.listen(PORT, () => {
