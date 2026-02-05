@@ -13,6 +13,30 @@ app.get('/', (req, res) => {
   res.send('Server is working!');
 });
 
+// Add a new team
+app.post('/api/teams', async (req, res) => {
+    try {
+        const { name } = req.body;
+        const result = await pool.query('INSERT INTO teams (name, stats) VALUES ($1, $2) RETURNING *', [name, '{}']);
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete a team
+app.delete('/api/teams/:id' , async (req, res) => {
+    try {
+        const { id } =req.params;
+        await pool.query('DELETE FROM teams WHERE id = $1', [id]);
+        res.json({ message: 'Team deleted' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.get('/api/players/:teamId', async (req, res) => {
   try {
     const { teamId } = req.params;
@@ -54,7 +78,7 @@ app.get('/api/teams', async (req, res) => {
         let teams = teamsResult.rows;
         const matches = matchesResult.rows;
 
-        team = teams.map(team => ({
+        teams = teams.map(team => ({
             ...team,
             wins: 0,
             losses: 0,
