@@ -37,7 +37,18 @@ app.delete('/api/teams/:id' , async (req, res) => {
     }
 });
 
-// Get Players
+// Get ALL Players
+app.get('/api/players', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM players');
+        res.json(result.rows);
+    }   catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get Players from a team
 app.get('/api/players/:teamId', async (req, res) => {
   try {
     const { teamId } = req.params;
