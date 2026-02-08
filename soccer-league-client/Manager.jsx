@@ -5,7 +5,11 @@ import { mac } from 'zod';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+
 function Manager() {
+    const [editingMatch, setEditingMatch] = useState(null);
+    const [scoreInput, setScoreInput] = useState({ home: 0, away: 0 });
+
     // Team State
     const [teams, setTeams] = useState([]);
     const [newTeamName, setNewTeamName] = useState('');
@@ -129,6 +133,17 @@ function Manager() {
             .catch(err => console.error("Error scheduling match:", err));
     };
 
+    // Save Match
+    const saveScore = (id) => {
+        axios.put(`${API_URL}/api/matches/${id}`, {
+            homeScore: scoreInput.home,
+            awayScore: scoreInput.away
+        }).then(() => {
+            setEditingMatch(null);
+            fetchMatches();
+        });
+    };
+
     // Delete Match
     const handleDeleteMatch = (id) => {
         if(confirm("Delete this match?")) {
@@ -229,6 +244,7 @@ function Manager() {
           )}
         </div>
 
+        {/* COLUMN 1: Schedule */}
         <div className="manager-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ccc' }}>
             <h2>Schedule Matches</h2>
 
@@ -262,13 +278,38 @@ function Manager() {
 
             <ul className="List-group">
                 {matches.map(m => (
-                    <li key={m.id} style={{ display: 'flex' , justifyContent: 'space-between', padding: '5px', borderBottom: '1px solid #eee' }}>
-                        <span>
-                            {getTeamName(m.home_team)} vs {getTeamName(m.away_team)} ({new Date(m.date).toLocaleDateString()})
-                        </span>
-                        <button onClick={() => handleDeleteMatch(m.id)} style={{ color: 'red' }}>
-                            Delete
-                        </button>
+                    <li key={m.id} style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
+                        <div style={{fontWeight:'bold'}}>
+                            {getTeamName(m.home_team)} vs {getTeamName(m.away_team)}
+                        </div>
+
+                        {editingMatch === m.id ? (
+                            <div style={{marginTop:'5px'}}>
+                                {/* Edit Mode */}
+                                <input type="number" style={{width:'40px'}} value={scoreInput.home}
+                                onChange={e => setScoreInput({...scoreInput, home: e.target.value})} />
+                                -
+                                <input type="number" style={{width:'40px'}} value={scoreInput.away}
+                                    onChange={e => setScoreInput({...scoreInput, away: e.target.value})} />
+                                
+                                <button onClick={() => saveScore(m.id)} style={{marginLeft:'5px', background:'green', color:'white'}}>Save</button>
+                                <button onClick={() => setEditingMatch(null)} style={{marginLeft:'5px'}}>Cancel</button>
+                            </div>
+                        ) : (
+                            <div style={{marginTop:'5px'}}>
+                                <span>Score: {m.home_score} - {m.away_score}</span>
+                                <span style={{marginLeft:'10px', fontSize:'0.8em', color: m.status === 'completed' ? 'green' : 'orange'}}>
+                                    ({m.status})
+                                </span>
+
+                                <button onClick={() => {
+                                    setEditingMatch(m.id);
+                                    setScoreInput({ home: m.home_score, away: m.away_score });
+                                }}  style={{marginLeft:'10px'}}>Update Score</button>
+
+                                <button onClick={() => handleDeleteMatch(m.id)} style={{marginLeft:'5px', color: 'red'}}>Delete</button>
+                           </div>
+                        )}
                     </li>
                 ))}
             </ul>           
