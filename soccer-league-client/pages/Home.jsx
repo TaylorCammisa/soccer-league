@@ -73,20 +73,34 @@ function Home() {
     if (!daysObject || Object.keys(daysObject).length === 0) return null;
 
     return (
-      <div style={{ marginBottom: '40px' }}>
+      <div key={divName} style={{ marginBottom: '40px' }}>
         <h2 style={{ background: '#2c3e50', color: 'white', padding: '10px', borderRadius: '5px' }}>
             {divName}
         </h2>
         {Object.keys(daysObject).map(day => (
           <div key={day} style={{ marginLeft: '20px', marginBottom: '20px' }}>
-            <h3 style={{ borderBottom: '1px solid #ccc' }}>{day}</h3>
+            <h3 style={{ borderBottom: '1px solid #ccc', color: '#555' }}>{day}</h3>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {daysObject[day].map(m => (
-                <li key={m.id} style={{ display: 'flex', gap: '20px', padding: '8px 0', borderBottom: '1px dotted #eee' }}>
-                  <span style={{ fontWeight: 'bold', minWidth: '80px', color: '#555' }}>{m.time}</span>
-                  <span>
-                    {m.homeName} <span style={{color:'#888'}}>vs</span> {m.awayName}
-                    {m.status === 'completed' && <span style={{fontWeight:'bold', marginLeft:'10px'}}>({m.home_score}-{m.away_score})</span>}
+                <li 
+                  key={m.id} 
+                  className="match-card"
+                  style={{ display: 'flex', gap: '20px', padding: '15px', borderBottom: '1px dotted #eee', alignItems: 'center', background: 'white', marginBottom:'10px', borderRadius:'8px' }}
+                >
+                  <span 
+                    className="match-time"
+                    style={{ fontWeight: 'bold', minWidth: '80px', color: '#2c3e50' }}
+                  >
+                    {m.time}
+                  </span>
+                  
+                  <span className="match-teams">
+                    {m.homeName} <span style={{color:'#888', fontSize:'0.9rem'}}>vs</span> {m.awayName}
+                    {m.status === 'completed' && (
+                        <span style={{fontWeight:'bold', marginLeft:'10px', color: 'green'}}>
+                            ({m.home_score} - {m.away_score})
+                        </span>
+                    )}
                   </span>
                 </li>
               ))}
