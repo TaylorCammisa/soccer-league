@@ -1,139 +1,107 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { mac } from 'zod';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-
 function Manager() {
-    const [editingMatch, setEditingMatch] = useState(null);
-    const [scoreInput, setScoreInput] = useState({ home: 0, away: 0 });
-
-    // Team State
+    // --- STATE ---
     const [teams, setTeams] = useState([]);
+    
+    // Team Form State
     const [newTeamName, setNewTeamName] = useState('');
+    const [newTeamDiv, setNewTeamDiv] = useState('Division 1'); // <--- NEW: Division State
 
-    // Player State
+    // Player Form State
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [players, setPlayers] = useState([]);
     const [newPlayerName, setNewPlayerName] = useState('');
 
-    // Matches State
-    const [matches, setmatches] = useState([]);
-    const [matchForm, setMatchForm] = useState({
-        team1_id: '',
-        team2_id: '',
-        date: ''
+    // Match Form State
+    const [matches, setMatches] = useState([]);
+    const [matchForm, setMatchForm] = useState({ 
+        team1_id: '', 
+        team2_id: '', 
+        date: '' // This will now hold Date AND Time
     });
+    
+    // Score Editing State
+    const [editingMatch, setEditingMatch] = useState(null);
+    const [scoreInput, setScoreInput] = useState({ home: 0, away: 0 });
 
-    // Load existing teams
+    // --- LOAD DATA ---
     useEffect(() => {
         fetchTeams();
         fetchMatches();
     }, []);
 
-    // Load player when team changes
     useEffect(() => {
-        if (selectedTeamId) {
-            fetchPlayers(selectedTeamId);
-        } else {
-            setPlayers([]);
-        }
+        if (selectedTeamId) fetchPlayers(selectedTeamId);
+        else setPlayers([]);
     }, [selectedTeamId]);
 
-    const fetchTeams = () => {
-        axios.get(`${API_URL}/api/teams`)
-            .then(res => setTeams(res.data))
-            .catch(err => console.error("Error loading teams:", err));
-    };
+    const fetchTeams = () => axios.get(`${API_URL}/api/teams`).then(res => setTeams(res.data));
+    const fetchMatches = () => axios.get(`${API_URL}/api/matches`).then(res => setMatches(res.data));
+    const fetchPlayers = (teamId) => axios.get(`${API_URL}/api/players/${teamId}`).then(res => setPlayers(res.data));
 
-    // Load Matches
-    const fetchMatches = () => {
-        axios.get(`${API_URL}/api/matches`)
-            .then(res => setmatches(res.data))
-            .catch(err => console.error("Error loading matches:", err));
-    };
+    // --- ACTIONS ---
 
-    // Add Teams
+    // 1. ADD TEAM (With Division)
     const handleAddTeam = (e) => {
         e.preventDefault();
         if (!newTeamName) return;
 
-        axios.post(`${API_URL}/api/teams`, { name: newTeamName })
-            .then(res => {
-                setNewTeamName('');
-                fetchTeams();
-            })
-            .catch(err => console.error("Error adding team:", err));
+        axios.post(`${API_URL}/api/teams`, { 
+            name: newTeamName, 
+            division: newTeamDiv // <--- SEND DIVISION
+        })
+        .then(() => { 
+            setNewTeamName(''); 
+            fetchTeams(); 
+        })
+        .catch(err => console.error(err));
     };
 
-    // Delete a Team
     const handleDeleteTeam = (id) => {
-        if (confirm("Are you sure? This will delete the team AND all their players.")) {
-            axios.delete(`${API_URL}/api/teams/${id}`)
-                .then(() => fetchTeams())
-                .catch(err => console.error("Error deleting team:", err));
-        }
+        if (confirm("Delete team?")) axios.delete(`${API_URL}/api/teams/${id}`).then(fetchTeams);
     };
 
-    // Get Player
-    const fetchPlayers = (teamId) => {
-        axios.get(`${API_URL}/api/players/${teamId}`)
-            .then(res => setPlayers(res.data))
-            .catch(err => console.error("Error loading players:", err));
-    };
-    
-    // Add Player
-    const handleAddPlayer =(e) => {
+    // 2. ADD PLAYER
+    const handleAddPlayer = (e) => {
         e.preventDefault();
         if(!newPlayerName || !selectedTeamId) return;
-
-        axios.post(`${API_URL}/api/players`, {
-            name: newPlayerName,
-            team_id: selectedTeamId
-        })
-            .then(() => {
-                setNewPlayerName('');
-                fetchPlayers(selectedTeamId);
-            })
-            .catch(err => console.error("Error adding player:", err));
+        axios.post(`${API_URL}/api/players`, { name: newPlayerName, team_id: selectedTeamId })
+             .then(() => { setNewPlayerName(''); fetchPlayers(selectedTeamId); });
     };
 
-    // Delete Player
     const handleDeletePlayer = (playerId) => {
-        if (confirm("Remove this player?")) {
-            axios.delete(`${API_URL}/api/players/${playerId}`)
-                .then(() => fetchPlayers(selectedTeamId))
-                .catch(err => console.error("Error deleting player:", err));
-        }
+        if (confirm("Remove player?")) axios.delete(`${API_URL}/api/players/${playerId}`).then(() => fetchPlayers(selectedTeamId));
     };
 
-    // Add Match
+    // 3. SCHEDULE MATCH (With Time)
     const handleScheduledMatch = (e) => {
         e.preventDefault();
         const { team1_id, team2_id, date } = matchForm;
+        if (!team1_id || !team2_id || !date) return alert("Missing fields");
+        if (team1_id === team2_id) return alert("Same team!");
 
-        if (!team1_id || !team2_id || !date) {
-            alert("Please select two teams and a date!");
-            return;
-        }
-
-        if (team1_id === team2_id) {
-            alert("A team cannot play against itself!");
-            return;
-        }
-
-        axios.post(`${API_URL}/api/matches`, matchForm)
-            .then(() => {
-                alert("Match Scheduled!");
-                fetchMatches();
-                setMatchForm({ ...matchForm, team1_id: '', team2_id: '' });
-            })
-            .catch(err => console.error("Error scheduling match:", err));
+        axios.post(`${API_URL}/api/matches`, matchForm).then(() => {
+            alert("Match Scheduled!");
+            fetchMatches();
+            setMatchForm({ ...matchForm, team1_id: '', team2_id: '' });
+        });
     };
 
-    // Save Match
+    const handleDeleteMatch = (id) => {
+        if(confirm("Delete match?")) axios.delete(`${API_URL}/api/matches/${id}`).then(fetchMatches);
+    };
+
+    // 4. SCOREBOARD
+    const startEditing = (match) => {
+        setEditingMatch(match.id);
+        setScoreInput({ home: match.home_score || 0, away: match.away_score || 0 });
+    };
+
     const saveScore = (id) => {
         axios.put(`${API_URL}/api/matches/${id}`, {
             homeScore: scoreInput.home,
@@ -144,20 +112,7 @@ function Manager() {
         });
     };
 
-    // Delete Match
-    const handleDeleteMatch = (id) => {
-        if(confirm("Delete this match?")) {
-            axios.delete(`${API_URL}/api/matches/${id}`)
-                .then(() => fetchMatches())
-                .catch(err => console.error(err));
-        }
-    };
-
-    // TeamID -> Team Name Helper
-    const getTeamName = (id) => {
-        const team = teams.find(t => t.id == id);
-        return team ? team.name : 'Unknown Team';
-    };
+    const getTeamName = (id) => teams.find(t => t.id == id)?.name || 'Unknown';
 
     return (
     <div className="app-container">
@@ -166,154 +121,120 @@ function Manager() {
 
       <div className="manager-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
         
-        {/* COLUMN 1: TEAMS */}
-        <div className="manager-section">
-          <h2>1. Manage Teams</h2>
-          <form onSubmit={handleAddTeam} style={{ marginBottom: '15px' }}>
+        {/* SECTION 1: ADD TEAMS */}
+        <div className="manager-section" style={{ padding: "5px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)"}}>
+          <h2>Add Teams</h2>
+          <form onSubmit={handleAddTeam} style={{display:'flex', gap:'10px', marginBottom:'10px'}}>
             <input 
-              type="text" 
-              placeholder="New Team Name" 
-              value={newTeamName}
-              onChange={(e) => setNewTeamName(e.target.value)}
-              style={{ padding: '8px', marginRight: '5px' }}
+                type="text" 
+                placeholder="Team Name" 
+                value={newTeamName} 
+                onChange={e => setNewTeamName(e.target.value)} 
             />
-            <button type="submit" className="save-btn">Add Team</button>
+            
+            {/* NEW: Division Selector */}
+            <select value={newTeamDiv} onChange={e => setNewTeamDiv(e.target.value)}>
+                <option value="Division 1">Division 1</option>
+                <option value="Division 2">Division 2</option>
+            </select>
+
+            <button type="submit" className="save-btn">Add</button>
           </form>
 
           <ul className="list-group">
-            {teams.map(team => (
-              <li key={team.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', borderBottom: '1px solid #eee' }}>
-                <span>{team.name}</span>
-                <button 
-                  onClick={() => handleDeleteTeam(team.id)}
-                  style={{ background: '#ff4444', color: 'white', border: 'none', padding: '4px 8px', cursor: 'pointer' }}
-                >
-                  X
-                </button>
-              </li>
+            {teams.map(t => (
+                <li key={t.id} style={{display:'flex', justifyContent:'space-between', padding:'5px'}}>
+                    <span>{t.name} <small style={{color:'#888', marginLeft:'5px'}}>({t.division || 'No Div'})</small></span>
+                    <button onClick={() => handleDeleteTeam(t.id)} style={{color:'red'}}>X</button>
+                </li>
             ))}
           </ul>
         </div>
 
-        {/* COLUMN 2: ROSTER */}
-        <div className="manager-section" style={{ background: '#f9f9f9', padding: '15px', borderRadius: '8px' }}>
-          <h2>2. Manage Roster</h2>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <label>Select Team to Edit: </label>
-            <select 
-              value={selectedTeamId} 
-              onChange={(e) => setSelectedTeamId(e.target.value)}
-              style={{ padding: '8px', width: '100%' }}
-            >
-              <option value="">-- Select a Team --</option>
-              {teams.map(team => (
-                <option key={team.id} value={team.id}>{team.name}</option>
-              ))}
-            </select>
-          </div>
-
+        {/* SECTION 2: ROSTER */}
+        <div className="manager-section" style={{ padding: "5px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)"}}>
+          <h2>Manage Roster</h2>
+          <select onChange={e => setSelectedTeamId(e.target.value)} value={selectedTeamId} style={{width:'100%', marginBottom:'10px'}}>
+             <option value="">-- Select Team --</option>
+             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
           {selectedTeamId && (
-            <>
-              <form onSubmit={handleAddPlayer} style={{ marginBottom: '15px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Player Name" 
-                  value={newPlayerName}
-                  onChange={(e) => setNewPlayerName(e.target.value)}
-                  style={{ padding: '8px', width: '60%', marginRight: '5px' }}
-                />
-                <button type="submit" className="save-btn">Add Player</button>
+            <div>
+              <form onSubmit={handleAddPlayer} style={{display:'flex', gap:'5px'}}>
+                <input type="text" placeholder="Player Name" value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} />
+                <button type="submit" className="save-btn">Add</button>
               </form>
-
               <ul className="list-group">
-                {players.length === 0 && <p style={{ color: '#888' }}>No players yet.</p>}
-                {players.map(player => (
-                  <li key={player.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                    <span>⚽ {player.name}</span>
-                    <button 
-                      onClick={() => handleDeletePlayer(player.id)}
-                      style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      Remove
-                    </button>
-                  </li>
+                {players.map(p => (
+                    <li key={p.id}>{p.name} <button onClick={() => handleDeletePlayer(p.id)} style={{color:'red'}}>X</button></li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
         </div>
 
-        {/* COLUMN 1: Schedule */}
-        <div className="manager-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ccc' }}>
-            <h2>Schedule Matches</h2>
+        {/* SECTION 3: SCHEDULE (UPDATED FOR TIME) */}
+        <div className="manager-section" style={{  padding: "5px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)"}}>
+            <h2>Schedule Match</h2>
+            <form onSubmit={handleScheduledMatch} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
+                    <select value={matchForm.team1_id} onChange={e => setMatchForm({...matchForm, team1_id: e.target.value})}>
+                        <option value="">Home Team</option>
+                        {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <span>VS</span>
+                    <select value={matchForm.team2_id} onChange={e => setMatchForm({...matchForm, team2_id: e.target.value})}>
+                        <option value="">Away Team</option>
+                        {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                </div>
 
-            <form onSubmit={handleScheduledMatch} style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                <select
-                    value={matchForm.team1_id}
-                    onChange={(e) => setMatchForm({...matchForm, team1_id: e.target.value})}
-                >
-                    <option value="">Home Team</option>
-                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-
-                <span>VS</span>
-
-                <select
-                    value={matchForm.team2_id}
-                    onChange={(e) => setMatchForm({...matchForm, team2_id: e.target.value})}
-                >
-                    <option value="">Away Team</option>
-                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-
-                <input
-                    type="date"
-                    value={matchForm.date}
-                    onChange={(e) => setMatchForm({...matchForm, date: e.target.value})}
+                {/* UPDATED: Uses 'datetime-local' to capture Time */}
+                <input 
+                    type="datetime-local" 
+                    value={matchForm.date} 
+                    onChange={e => setMatchForm({...matchForm, date: e.target.value})}
+                    style={{padding:'8px'}}
                 />
 
-                <button type="submit" className="save-btn">Schedule</button>
-            </form> 
+                <button type="submit" className="save-btn">Schedule Game</button>
+            </form>
+        </div>
 
-            <ul className="List-group">
+        {/* SECTION 4: SCORES */}
+        <div className="manager-section" style={{ padding: "5px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
+            <h2>Match Results</h2>
+            <ul className="list-group">
                 {matches.map(m => (
                     <li key={m.id} style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
                         <div style={{fontWeight:'bold'}}>
                             {getTeamName(m.home_team)} vs {getTeamName(m.away_team)}
                         </div>
+                        {/* Display the Time nicely */}
+                        <div style={{fontSize:'0.8em', color:'#666', marginBottom:'5px'}}>
+                           {new Date(m.date).toLocaleString([], {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
+                        </div>
 
                         {editingMatch === m.id ? (
-                            <div style={{marginTop:'5px'}}>
-                                {/* Edit Mode */}
-                                <input type="number" style={{width:'40px'}} value={scoreInput.home}
-                                onChange={e => setScoreInput({...scoreInput, home: e.target.value})} />
-                                -
-                                <input type="number" style={{width:'40px'}} value={scoreInput.away}
-                                    onChange={e => setScoreInput({...scoreInput, away: e.target.value})} />
-                                
-                                <button onClick={() => saveScore(m.id)} style={{marginLeft:'5px', background:'green', color:'white'}}>Save</button>
+                            <div>
+                                <input type="number" style={{width:'40px'}} value={scoreInput.home} onChange={e => setScoreInput({...scoreInput, home: e.target.value})} />
+                                - 
+                                <input type="number" style={{width:'40px'}} value={scoreInput.away} onChange={e => setScoreInput({...scoreInput, away: e.target.value})} />
+                                <button onClick={() => saveScore(m.id)} style={{marginLeft:'5px', color:'green'}}>Save</button>
                                 <button onClick={() => setEditingMatch(null)} style={{marginLeft:'5px'}}>Cancel</button>
                             </div>
                         ) : (
-                            <div style={{marginTop:'5px'}}>
+                            <div>
                                 <span>Score: {m.home_score} - {m.away_score}</span>
-                                <span style={{marginLeft:'10px', fontSize:'0.8em', color: m.status === 'completed' ? 'green' : 'orange'}}>
-                                    ({m.status})
-                                </span>
-
-                                <button onClick={() => {
-                                    setEditingMatch(m.id);
-                                    setScoreInput({ home: m.home_score, away: m.away_score });
-                                }}  style={{marginLeft:'10px'}}>Update Score</button>
-
-                                <button onClick={() => handleDeleteMatch(m.id)} style={{marginLeft:'5px', color: 'red'}}>Delete</button>
-                           </div>
+                                <button onClick={() => { setEditingMatch(m.id); setScoreInput({ home: m.home_score, away: m.away_score }); }} style={{marginLeft:'10px'}}>Edit</button>
+                                <button onClick={() => handleDeleteMatch(m.id)} style={{marginLeft:'5px', color:'red'}}>Del</button>
+                            </div>
                         )}
                     </li>
                 ))}
-            </ul>           
+            </ul>
         </div>
+
       </div>
     </div>
   );

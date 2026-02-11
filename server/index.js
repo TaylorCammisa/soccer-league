@@ -28,8 +28,8 @@ app.get('/api/teams', async (req, res) => {
 
 app.post('/api/teams', async (req, res) => {
     try {
-        const { name } = req.body;
-        const result = await db.query('INSERT INTO teams (name) VALUES ($1) RETURNING *', [name]);
+        const { name, division } = req.body;
+        const result = await db.query('INSERT INTO teams (name, division) VALUES ($1, $2) RETURNING *', [name, division]);
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);

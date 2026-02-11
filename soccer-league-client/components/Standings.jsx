@@ -2,8 +2,6 @@
 function Standings({ teams }) {
   return (
     <div style={{ padding: "20px", fontFamily: "sans-serif"}} >
-      <h1>League Standings</h1>
-
       <table border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr style={{ backgroundColor: "#eee" }}>
