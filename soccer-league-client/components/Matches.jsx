@@ -59,7 +59,7 @@ function MatchCard({ match, isAdmin, onUpdate }) {
       ) : (
         <div style={{ marginTop: "5px", fontWeight: "bold", color: "blue", display: "flex", justifyContent: "space-between" }}>
           <span>
-            Result: {match.status ? `${match.home_score} - ${match.away_score}` : "Upcoming"}
+            Result: {match.status === 'completed' ? `${match.home_score} - ${match.away_score}` : "Upcoming"}
           </span>
           {isAdmin && (
             <button

@@ -6,30 +6,13 @@ import Standings from './components/Standings'
 import Matches from './components/Matches'
 import TeamCards from './components/TeamCards'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 function PublicDashboard() {
   const [teams, setTeams] = useState([])
   const [matches, setMatches] = useState([])
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-  // Fetch Teams/Matches
-  useEffect(() => {
-    const loadData = async () => {
-        try {
-            const [tRes, mRes] = await Promise.all([
-                axios.get(`${API_URL}/api/teams`),
-                axios.get(`${API_URL}/api/matches`)
-            ]);
-            setTeams(tRes.data);
-            setMatches(mRes.data);
-            const calculated = calculateStandings(tRes.data, mRes.data);
-            setStandings(calculated);
-        }   catch (err) { console.error(err); }
-    };
-    loadData();
-    }, []);
-
-  // Calculate Standings
   const [standings, setStandings] = useState([]);
+
   const calculateStandings = (teamsData, matchesData) => {
     const stats = {};
     teamsData.forEach(t => {
@@ -54,6 +37,23 @@ function PublicDashboard() {
 
     return Object.values(stats).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga));
   };
+
+  // Fetch Teams/Matches
+  useEffect(() => {
+    const loadData = async () => {
+        try {
+            const [tRes, mRes] = await Promise.all([
+                axios.get(`${API_URL}/api/teams`),
+                axios.get(`${API_URL}/api/matches`)
+            ]);
+            setTeams(tRes.data);
+            setMatches(mRes.data);
+            const calculated = calculateStandings(tRes.data, mRes.data);
+            setStandings(calculated);
+        }   catch (err) { console.error(err); }
+    };
+    loadData();
+    }, []);
 
   return (
     <div style={{ padding: "20px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>

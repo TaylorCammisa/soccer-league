@@ -19,7 +19,7 @@ function RosterPage() {
     }, []);
 
     const renderTeamGrid = (teamList) => (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(aout-fit, minmax(250px, 1fr))", gap: "20px", marginBottom: '40px' }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px", marginBottom: '40px' }}>
             {teamList.map(team => {
                 const teamPlayers = players.filter(p => p.team_id === team.id);
                 return (

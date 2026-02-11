@@ -6,8 +6,8 @@ function Standings({ teams }) {
       <table border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr style={{ backgroundColor: "#eee" }}>
-            <th>#</th>
-            <th>Team</th>
+            <th>Rank</th>
+            <th>Team Name</th>
             <th>W</th>
             <th>D</th>
             <th>L</th>
