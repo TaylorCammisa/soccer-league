@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import StandingsPage from './pages/StandingsPage';
@@ -10,6 +10,7 @@ const ADMIN_TOKEN_KEY = 'manager_auth_token';
 
 function App() {
     const [adminToken, setAdminToken] = useState(() => localStorage.getItem(ADMIN_TOKEN_KEY) || '');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogin = (token) => {
         setAdminToken(token);
@@ -21,30 +22,70 @@ function App() {
         localStorage.removeItem(ADMIN_TOKEN_KEY);
     };
 
+    const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+    useEffect(() => {
+        if (!isMobileMenuOpen) return undefined;
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                setIsMobileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        document.body.classList.add('mobile-menu-open');
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.classList.remove('mobile-menu-open');
+        };
+    }, [isMobileMenuOpen]);
+
     return (
         <Router>
             {/* Main Nav Bar */}
-            <nav style={{
-                padding: '15px',
-                background: '#2c3e50',
-                color: 'white',
-                marginBottom: '20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <div className="nav-links">
-                    <Link to="/" style={navStyle}>Matches (Home)</Link>
-                    <Link to="/standings" style={navStyle}>Standings</Link>
-                    <Link to="/roster" style={navStyle}>Rosters</Link>
+            <nav className="main-nav">
+                <button
+                    type="button"
+                    className="mobile-menu-toggle"
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    aria-label="Open navigation menu"
+                >
+                    <span />
+                    <span />
+                    <span />
+                </button>
+
+                <div className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+                    <div className="mobile-nav-header">
+                        <span>Navigation</span>
+                        <button
+                            type="button"
+                            className="mobile-menu-close"
+                            onClick={closeMobileMenu}
+                            aria-label="Close navigation menu"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <Link to="/" style={navStyle} onClick={closeMobileMenu}>Matches (Home)</Link>
+                    <Link to="/standings" style={navStyle} onClick={closeMobileMenu}>Standings</Link>
+                    <Link to="/roster" style={navStyle} onClick={closeMobileMenu}>Rosters</Link>
                 </div>
 
                 <div className="admin-links">
-                    <Link to="/manager" style={{ ...navStyle, color: '#e74c3c', border: '1px solid #e74c3c', padding: '5px 10px', borderRadius: '4px', marginRight: 0}}>
+                    <Link
+                        to="/manager"
+                        style={{ ...navStyle, color: '#e74c3c', border: '1px solid #e74c3c', padding: '5px 10px', borderRadius: '4px', marginRight: 0 }}
+                        onClick={closeMobileMenu}
+                    >
                         {adminToken ? 'Manager' : 'Manager Login'}
                     </Link>
                 </div>
             </nav>
+
+            {isMobileMenuOpen && <button type="button" aria-label="Close menu overlay" className="mobile-nav-overlay" onClick={closeMobileMenu} />}
 
             <Routes>
                 <Route path="/" element={<Home />} />

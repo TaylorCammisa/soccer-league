@@ -20,6 +20,8 @@ function buildGroupedSchedule(teams, matches) {
   };
 
   matches.forEach(match => {
+    if (match.status === 'completed') return;
+
     const homeTeam = getTeamInfo(match.home_team);
     const awayTeam = getTeamInfo(match.away_team);
     if (!homeTeam || !awayTeam) return;
@@ -61,47 +63,32 @@ function Home() {
     if (!daysObject || Object.keys(daysObject).length === 0) return null;
 
     return (
-      <div key={divName} style={{ marginBottom: '40px' }}>
-        <h2 style={{ background: '#2c3e50', color: 'white', padding: '10px', borderRadius: '5px' }}>
+      <section key={divName} className="division-section">
+        <h2 className="division-heading">
           {divName}
         </h2>
         {Object.keys(daysObject).map(day => (
-          <div key={day} style={{ marginLeft: '20px', marginBottom: '20px' }}>
-            <h3 style={{ borderBottom: '1px solid #ccc', color: '#555' }}>{day}</h3>
+          <div key={day} className="schedule-day-group">
+            <h3 className="schedule-day-title">{day}</h3>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {daysObject[day].map(m => (
                 <li
                   key={m.id}
                   className="match-card"
-                  style={{
-                    display: 'flex',
-                    gap: '20px',
-                    padding: '15px',
-                    borderBottom: '1px dotted #eee',
-                    alignItems: 'center',
-                    background: 'white',
-                    marginBottom: '10px',
-                    borderRadius: '8px'
-                  }}
                 >
-                  <span className="match-time" style={{ fontWeight: 'bold', minWidth: '80px', color: '#2c3e50' }}>
+                  <span className="match-time">
                     {m.time}
                   </span>
 
                   <span className="match-teams">
                     {m.homeName} <span style={{ color: '#888', fontSize: '0.9rem' }}>vs</span> {m.awayName}
-                    {m.status === 'completed' && (
-                      <span style={{ fontWeight: 'bold', marginLeft: '10px', color: 'green' }}>
-                        ({m.home_score} - {m.away_score})
-                      </span>
-                    )}
                   </span>
                 </li>
               ))}
             </ul>
           </div>
         ))}
-      </div>
+      </section>
     );
   }
 
@@ -124,10 +111,12 @@ function Home() {
   }, []);
 
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading Schedule...</div>;
+  const hasMatches = Object.values(groupedMatches).some((divisionDays) => Object.keys(divisionDays).length > 0);
 
   return (
     <div className="page-container">
-      <h1 style={{ textAlign: 'center' }}>Match Schedule</h1>
+      <h1 style={{ textAlign: 'center' }}>Upcoming Match Schedule</h1>
+      {!hasMatches && <p style={{ textAlign: 'center', color: '#667' }}>No upcoming matches scheduled yet.</p>}
       {renderDivisionSection('Division 1', groupedMatches['Division 1'])}
       {renderDivisionSection('Division 2', groupedMatches['Division 2'])}
       {renderDivisionSection('Cross-Division', groupedMatches['Cross-Division'])}
