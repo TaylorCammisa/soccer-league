@@ -39,7 +39,6 @@ a {
 
 /* Nav Bar */
 .main-nav {
-    z-index: 1100;
     padding: 15px;
     background: var(--primary);
     color: white;
@@ -49,7 +48,7 @@ a {
     align-items: center;
     box-shadow: var(--shadow);
     position: relative;
-    z-index: 40;
+    z-index: 1100;
 }
 
 .nav-links {
@@ -329,6 +328,9 @@ button:active {
         font-size: 1rem !important;
         padding: 8px 10px;
         border-radius: 8px;
+        position: relative;
+        z-index: 1102;
+        touch-action: manipulation;
     }
 
     .mobile-nav-overlay {
