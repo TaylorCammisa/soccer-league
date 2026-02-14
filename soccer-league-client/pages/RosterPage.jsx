@@ -19,11 +19,11 @@ function RosterPage() {
     }, []);
 
     const renderTeamGrid = (teamList) => (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px", marginBottom: '40px' }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "4px", marginBottom: '40px' }}>
             {teamList.map(team => {
                 const teamPlayers = players.filter(p => p.team_id === team.id);
                 return (
-                    <div key={team.id} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "15px", background: "white", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
+                    <div key={team.id} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "15px", background: "white"}}>
                         <h4 style={{ margin: "0 0 10px 0", borderBottom: "2px solid #333", paddingBottom: "5px" }}>{team.name}</h4>
                         <ul style={{ paddingLeft: "20px", margin: 0 }}>
                             {teamPlayers.length === 0 && <li style={{color: "#999", listStyle: 'none'}}>No Players Signed</li>}

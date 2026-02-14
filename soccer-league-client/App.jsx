@@ -7,6 +7,7 @@ import Manager from './Manager';
 import Login from './components/Login';
 
 const ADMIN_TOKEN_KEY = 'manager_auth_token';
+const NAV_LOGO_SRC = './assets/StocktonSoccer.png';
 
 function App() {
     const [adminToken, setAdminToken] = useState(() => localStorage.getItem(ADMIN_TOKEN_KEY) || '');
@@ -56,6 +57,10 @@ function App() {
                     <span />
                     <span />
                 </button>
+
+                <Link to="/" className="nav-logo-link" onClick={closeMobileMenu} aria-label="Home">
+                    <img src={NAV_LOGO_SRC} alt="Soccer League logo" className="nav-logo" />
+                </Link>
 
                 <div className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                     <div className="mobile-nav-header">

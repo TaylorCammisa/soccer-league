@@ -30,7 +30,7 @@ function MatchCard({ match, isAdmin, onUpdate }) {
   }
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px", background: "#f9f9f9" }}>
+    <div style={{ padding: "10px", background: "#f9f9f9" }}>
       <div style={{ fontWeight: "bold", fontSize: "1.1em" }}>
         {match.home_team} vs {match.away_team}
       </div>
