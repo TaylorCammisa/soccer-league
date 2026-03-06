@@ -74,9 +74,9 @@ function App() {
                             ×
                         </button>
                     </div>
-                    <Link to="/" style={navStyle} onClick={closeMobileMenu}>Matches (Home)</Link>
+                    <Link to="/" style={navStyle} onClick={closeMobileMenu}>Matches</Link>
                     <Link to="/standings" style={navStyle} onClick={closeMobileMenu}>Standings</Link>
-                    <Link to="/roster" style={navStyle} onClick={closeMobileMenu}>Rosters</Link>
+                    <Link to="/roster" style={navStyle} onClick={closeMobileMenu}>Roster</Link>
                 </div>
 
                 <div className="admin-links">
